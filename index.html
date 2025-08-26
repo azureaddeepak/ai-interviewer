@@ -20,129 +20,134 @@
       color: white;
       cursor: pointer;
     }
-    button:disabled {
-      opacity: 0.5;
-    }
-    #status {
-      margin: 20px;
-      font-style: italic;
-      color: #666;
-    }
-    pre {
-      white-space: pre-wrap;
-      background: #fff;
-      padding: 15px;
-      border-radius: 5px;
-      max-width: 800px;
-      margin: 20px auto;
-      border: 1px solid #ddd;
-    }
+    button:disabled { opacity: 0.5; }
+    .section { margin: 30px; }
+    audio { margin: 10px; }
+    #status { margin: 20px; font-style: italic; color: #666; }
   </style>
 </head>
 <body>
 
-  <h1>🤖 AI Interviewer (Azure DevOps)</h1>
-  <p id="question">Press "Start" to begin your interview.</p>
-  <button id="startBtn">🎙️ Start Interview</button>
-  <div id="status"></div>
-  <pre id="transcript"></pre>
+  <h1>🎙️ AI Interviewer (Azure DevOps + AKS)</h1>
+  <p id="question">Press "Start" to begin.</p>
+
+  <div class="section">
+    <button id="startBtn">🟢 Start Interview</button>
+    <button id="recordBtn" disabled>🔴 Record Answer (30 sec)</button>
+    <button id="nextBtn" disabled>➡️ Next Question</button>
+  </div>
+
+  <div id="status">Ready when you are.</div>
+  <div id="recordings"></div>
 
   <script>
-    // Interview Questions (Azure DevOps + AKS)
     const questions = [
-      "Hello! I'm your AI interviewer. Can you explain what CI/CD is and how you've used it in Azure DevOps?",
-      "Have you used Terraform or ARM templates? Please describe your experience.",
+      "Welcome! Please tell me about your experience with Azure DevOps and CI/CD pipelines.",
+      "Have you used Terraform or ARM templates? Describe your experience.",
       "Tell me about a time you fixed a broken deployment pipeline.",
-      "How do you manage secrets in Azure DevOps pipelines? Have you used Azure Key Vault?",
-      "Explain how you deploy applications to Azure Kubernetes Service (AKS) using Azure DevOps.",
-      "What tools do you use for monitoring and logging in AKS? How do you set up alerts?",
+      "How do you manage secrets in Azure DevOps? Have you used Key Vault?",
+      "Explain how you deploy applications to Azure Kubernetes Service (AKS).",
+      "What tools do you use for monitoring and logging in AKS?",
       "Describe your experience with Helm charts in AKS deployments."
     ];
 
     let currentQ = 0;
     const synth = window.speechSynthesis;
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-
     const startBtn = document.getElementById("startBtn");
+    const recordBtn = document.getElementById("recordBtn");
+    const nextBtn = document.getElementById("nextBtn");
     const questionEl = document.getElementById("question");
     const statusEl = document.getElementById("status");
-    const transcriptEl = document.getElementById("transcript");
+    const recordingsEl = document.getElementById("recordings");
 
-    // Check if SpeechRecognition is supported
-    if (!recognition) {
-      statusEl.textContent = "⚠️ Your browser doesn't support voice recognition. Please use Google Chrome.";
+    // Text-to-Speech
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.9;
+      synth.speak(utter);
+    }
+
+    // Start Interview
+    startBtn.onclick = () => {
       startBtn.disabled = true;
-    }
+      recordBtn.disabled = false;
+      nextBtn.disabled = true;
+      nextQuestion();
+    };
 
-    // Add click event with delay to ensure DOM is ready
-    setTimeout(() => {
-      startBtn.onclick = function() {
-        console.log("Start button clicked!"); // Debug log
-        requestMicAndStart();
-      };
-    }, 500);
-
-    // Request microphone and start interview
-    function requestMicAndStart() {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          statusEl.textContent = "🎤 Microphone access granted. Starting interview...";
-          startBtn.disabled = true;
-          nextQuestion();
-        })
-        .catch(err => {
-          statusEl.textContent = "❌ Microphone access denied. Please allow it in browser settings.";
-          console.error("Mic error:", err);
-        });
-    }
-
-    // Speak and ask next question
+    // Move to next question
     function nextQuestion() {
       if (currentQ >= questions.length) {
-        questionEl.textContent = "✅ Interview complete!";
-        statusEl.textContent = "You can review your answers above.";
+        questionEl.textContent = "✅ Interview complete! Thank you.";
+        statusEl.textContent = "You can review your recordings above.";
+        recordBtn.disabled = true;
+        nextBtn.disabled = true;
         return;
       }
 
       const q = questions[currentQ];
-      questionEl.textContent = q;
-      
-      // Speak the question
-      const utter = new SpeechSynthesisUtterance(q);
-      utter.rate = 0.9;
-      synth.speak(utter);
-
-      statusEl.textContent = "🎙️ Listening in 3 seconds...";
-      setTimeout(startListening, 3000);
+      questionEl.textContent = `Question ${currentQ + 1}: ${q}`;
+      speak(q);
+      statusEl.textContent = "Press 'Record Answer' when ready.";
     }
 
-    // Start listening to answer
-    function startListening() {
+    // Voice Recording Setup
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioURL;
+
+    recordBtn.onclick = async () => {
+      recordBtn.disabled = true;
+      statusEl.textContent = "🔴 Recording... (30 seconds)";
+
       try {
-        recognition.onresult = function(event) {
-          const transcript = event.results[0][0].transcript;
-          transcriptEl.textContent += `\nQ: ${questions[currentQ]}\nA: ${transcript}\n`;
-          statusEl.textContent = "✅ Answer recorded.";
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
         };
 
-        recognition.onerror = function(event) {
-          statusEl.textContent = "Error: " + event.error;
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          audioURL = URL.createObjectURL(audioBlob);
+
+          const audio = document.createElement('audio');
+          audio.src = audioURL;
+          audio.controls = true;
+
+          const p = document.createElement('p');
+          p.innerHTML = `<strong>Q${currentQ + 1}:</strong> ${questions[currentQ]}`;
+          recordingsEl.appendChild(p);
+          recordingsEl.appendChild(audio);
+
+          statusEl.textContent = "✅ Recording saved. Press 'Next Question' to continue.";
+          nextBtn.disabled = false;
         };
 
-        recognition.start();
-
-        // Stop after 5 seconds
+        mediaRecorder.start();
+        statusEl.textContent = "🔴 Recording... (30 seconds)";
+        
+        // Auto-stop after 30 seconds
         setTimeout(() => {
-          recognition.stop();
-          currentQ++;
-          setTimeout(nextQuestion, 1000);
-        }, 5000);
+          if (mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+          }
+        }, 30000);
 
       } catch (err) {
-        statusEl.textContent = "Failed to start listening: " + err.message;
+        statusEl.textContent = "Error: " + err.message;
       }
-    }
+    };
+
+    nextBtn.onclick = () => {
+      currentQ++;
+      recordBtn.disabled = false;
+      nextBtn.disabled = true;
+      nextQuestion();
+    };
   </script>
 </body>
 </html>
