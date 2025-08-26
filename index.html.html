@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI DevOps Interviewer</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 50px; }
+    button { font-size: 18px; padding: 10px 20px; margin: 10px; }
+    #status { margin: 20px; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>🤖 AI Interviewer (Azure DevOps)</h1>
+  <p id="question">Press "Start" to begin your interview.</p>
+  <button id="startBtn">🎙️ Start Interview</button>
+  <button id="listenBtn" disabled>🎧 Listen to Answer</button>
+  <div id="status"></div>
+  <pre id="transcript"></pre>
+
+  <script>
+    const questions = [
+      "Hello! I'm your AI interviewer. Can you explain what CI/CD is and how you've used it in Azure DevOps?",
+      "Have you used Terraform or ARM templates? Please describe your experience.",
+      "Tell me about a time you fixed a broken deployment pipeline.",
+      "Thank you! Your interview is complete. Check the transcript below."
+    ];
+
+    let currentQ = 0;
+    const synth = window.speechSynthesis;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+    const startBtn = document.getElementById("startBtn");
+    const listenBtn = document.getElementById("listenBtn");
+    const questionEl = document.getElementById("question");
+    const statusEl = document.getElementById("status");
+    const transcriptEl = document.getElementById("transcript");
+
+    // Text-to-Speech function
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.9;
+      synth.speak(utter);
+    }
+
+    // Start interview
+    startBtn.onclick = () => {
+      startBtn.disabled = true;
+      nextQuestion();
+    };
+
+    // Move to next question
+    function nextQuestion() {
+      if (currentQ >= questions.length - 1) {
+        questionEl.textContent = "Interview complete!";
+        statusEl.textContent = "You can review your answers above.";
+        return;
+      }
+
+      const q = questions[currentQ];
+      questionEl.textContent = q;
+      speak(q);
+
+      statusEl.textContent = "Listening in 3 seconds...";
+      setTimeout(startListening, 3000);
+    }
+
+    // Start voice recording
+    function startListening() {
+      if (!recognition) {
+        statusEl.textContent = "Sorry, your browser doesn't support voice recognition.";
+        return;
+      }
+
+      listenBtn.disabled = false;
+      transcriptEl.textContent += "\nQ: " + questions[currentQ] + "\n";
+      statusEl.textContent = "🎤 Speak now...";
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        transcriptEl.textContent += "A: " + transcript + "\n";
+        statusEl.textContent = "Answer recorded.";
+      };
+
+      recognition.start();
+
+      setTimeout(() => {
+        recognition.stop();
+        listenBtn.disabled = true;
+        currentQ++;
+        setTimeout(nextQuestion, 2000);
+      }, 5000); // Listen for 5 seconds
+    }
+
+    // Manual listen button (extra)
+    listenBtn.onclick = () => {
+      statusEl.textContent = "🎤 Listening now...";
+      recognition.start();
+      setTimeout(() => recognition.stop(), 5000);
+    };
+  </script>
+</body>
+</html>
