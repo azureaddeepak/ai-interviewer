@@ -10,49 +10,56 @@
       font-family: 'Roboto', Arial, sans-serif;
       text-align: center;
       padding: 30px;
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       color: #333;
       margin: 0;
       min-height: 100vh;
+      background-attachment: fixed;
     }
     .container {
       max-width: 900px;
       margin: 0 auto;
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
       padding: 30px;
       overflow: hidden;
+      border: 1px solid #e0e0e0;
     }
     h1 {
-      color: #0078d4;
+      color: #005a9e;
       margin-bottom: 10px;
-      font-size: 28px;
+      font-size: 32px;
+      font-weight: 600;
     }
     p#question {
       font-size: 18px;
       line-height: 1.6;
       background: #f0f8ff;
-      padding: 15px;
-      border-radius: 10px;
+      padding: 18px;
+      border-radius: 12px;
       margin: 20px 0;
+      border: 1px solid #d0ebff;
+      font-weight: 500;
     }
     button {
       font-size: 16px;
-      padding: 12px 30px;
+      padding: 14px 32px;
       margin: 15px 0;
       border: none;
-      border-radius: 50px;
+      border-radius: 60px;
       background: #0078d4;
       color: white;
       cursor: pointer;
       font-weight: 600;
-      box-shadow: 0 4px 10px rgba(0,120,212,0.3);
-      transition: all 0.3s;
+      box-shadow: 0 6px 15px rgba(0, 120, 212, 0.4);
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
     }
     button:hover {
       background: #005a9e;
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 120, 212, 0.5);
     }
     button:disabled {
       opacity: 0.6;
@@ -62,69 +69,113 @@
     #status, #timer {
       margin: 15px 0;
       font-style: italic;
-      color: #666;
+      color: #555;
       font-size: 16px;
     }
     #timer {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: bold;
-      color: #d90000;
+      color: #e74c3c;
       display: none;
+      background: #fdf2f2;
+      padding: 10px 20px;
+      border-radius: 10px;
+      display: inline-block;
+      border: 2px solid #e74c3c;
     }
     #result {
       font-size: 20px;
       font-weight: bold;
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px auto;
+      padding: 25px;
+      border-radius: 14px;
+      margin: 25px auto;
       max-width: 800px;
       display: none;
+      line-height: 1.6;
+      text-align: center;
     }
     .pass {
       background: #d4edda;
       color: #155724;
-      border: 1px solid #c3e6cb;
+      border: 2px solid #c3e6cb;
     }
     .fail {
       background: #f8d7da;
       color: #721c24;
-      border: 1px solid #f5c6cb;
+      border: 2px solid #f5c6cb;
     }
     #transcript {
       white-space: pre-wrap;
       background: #f9f9f9;
       padding: 20px;
-      border-radius: 10px;
-      max-height: 300px;
+      border-radius: 12px;
+      max-height: 350px;
       overflow-y: auto;
       text-align: left;
       border: 1px solid #ddd;
       margin: 20px 0;
       font-size: 14px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
     }
     .ai-text {
       color: #0078d4;
-      font-weight: bold;
-      margin: 8px 0;
+      font-weight: 600;
+      margin: 10px 0;
       display: block;
     }
     .user-text {
       color: #28a745;
-      font-weight: bold;
-      margin: 8px 0;
+      font-weight: 600;
+      margin: 10px 0;
       display: block;
+    }
+    .timestamp {
+      color: #6c757d;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .rating {
+      color: #FFD700;
+      font-size: 22px;
+      margin: 12px 0;
+      font-weight: bold;
+    }
+    .feedback {
+      color: #555;
+      font-size: 14px;
+      margin: 5px 0;
+      font-style: italic;
+    }
+    hr {
+      margin: 20px 0;
+      border: 1px dashed #dee2e6;
     }
     footer {
       margin-top: 30px;
-      color: #888;
+      color: #adb5bd;
       font-size: 14px;
+      text-align: center;
+    }
+    .header-logo {
+      width: 60px;
+      height: 60px;
+      background: #0078d4;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 24px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>🎙️ AI Interviewer (Azure DevOps + AKS)</h1>
+    <div class="header-logo">🤖</div>
+    <h1>AI Interviewer (Azure DevOps + AKS)</h1>
     <p id="question">Press "Start Interview" to begin.</p>
 
     <button id="startBtn">🟢 Start First Round Interview</button>
@@ -133,8 +184,8 @@
     <div id="timer">⏱️ Time Remaining: <span id="time">40</span> seconds</div>
     <div id="result"></div>
 
-    <h3>Interview Transcript</h3>
-    <pre id="transcript"></pre>
+    <h3 style="color:#005a9e; margin-top:30px;">Interview Transcript</h3>
+    <div id="transcript"></div>
 
     <footer>
       © 2025 AI Screening Assistant | Azure DevOps & AKS Role
@@ -176,6 +227,7 @@
 
     let currentQ = 0;
     let totalScore = 0;
+    let timerInterval = null;
     const synth = window.speechSynthesis;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = SpeechRecognition ? new SpeechRecognition() : null;
@@ -219,45 +271,49 @@
       const data = interviewData[currentQ];
       questionEl.textContent = data.question;
       speak(data.question);
-      transcriptEl.innerHTML += `<p class="ai-text">AI: ${data.question}</p>`;
+
+      // Add AI question to transcript
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      transcriptEl.innerHTML += `
+        <div class="entry">
+          <div class="timestamp">${timeStr}</div>
+          <div class="ai-text">AI: ${data.question}</div>
+        </div>
+      `;
+
       statusEl.textContent = "🎙️ You have 40 seconds to answer...";
+      timerEl.style.display = "block";
+      timeEl.textContent = "40";
 
-      // Start countdown
-      startTimer(40);
-    }
-
-    // Start 40-second Timer
-    function startTimer(seconds) {
-      timeEl.textContent = seconds;
-      const interval = setInterval(() => {
-        seconds--;
-        timeEl.textContent = seconds;
-        if (seconds <= 0) {
-          clearInterval(interval);
-          timerEl.style.display = "none";
-          statusEl.textContent = "✅ Answer recorded. Moving to next question...";
-          recognition.stop();
-          currentQ++;
-          setTimeout(nextQuestion, 1000);
-        }
-      }, 1000);
-
-      // Start listening
-      startListening();
+      // Start 40-second timer and listening
+      startListening(40);
     }
 
     // Start Listening
-    function startListening() {
+    function startListening(duration) {
+      let timeLeft = duration;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+
+      // Request microphone
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
+          let finalTranscript = '';
+
+          // Configure recognition
+          recognition.continuous = false;
+          recognition.interimResults = false;
+
           recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            transcriptEl.innerHTML += `<p class="user-text">You: ${transcript}</p>`;
-            statusEl.textContent = "✅ Answer recorded.";
-
-            // Score answer
-            const score = compareAnswers(transcript, interviewData[currentQ].ideal);
-            totalScore += score;
+            finalTranscript += transcript + ' ';
           };
 
           recognition.onerror = (event) => {
@@ -266,11 +322,44 @@
 
           recognition.start();
 
-          // Auto-stop after 40 seconds
+          // Stop after 40 seconds
           setTimeout(() => {
             if (recognition.state !== "inactive") recognition.stop();
             stream.getTracks().forEach(track => track.stop());
-          }, 40000);
+
+            // Save final answer
+            timerEl.style.display = "none";
+            statusEl.textContent = "✅ Answer recorded. Moving to next question...";
+
+            // Show answer in transcript
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const displayAnswer = finalTranscript.trim() || "No answer recorded.";
+            transcriptEl.innerHTML += `
+              <div class="entry">
+                <div class="timestamp">${timeStr}</div>
+                <div class="user-text">You: ${displayAnswer}</div>
+              </div>
+            `;
+
+            // Score answer and show rating
+            const score = compareAnswers(finalTranscript, interviewData[currentQ].ideal);
+            const rating = Math.round(score / 20); // 1–5 stars
+            const feedback = getFeedback(rating, finalTranscript);
+
+            transcriptEl.innerHTML += `
+              <div class="rating">Rating: ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
+              <div class="feedback">💬 ${feedback}</div>
+              <hr>
+            `;
+
+            // Add to total score
+            totalScore += score;
+
+            // Next question
+            currentQ++;
+            setTimeout(nextQuestion, 1000);
+          }, duration * 1000);
 
         })
         .catch(err => {
@@ -278,7 +367,7 @@
         });
     }
 
-    // Simple Text Similarity (30% keyword match)
+    // Compare Answers (30% keyword match)
     function compareAnswers(userAnswer, idealAnswer) {
       const userWords = userAnswer.toLowerCase().split(/\W+/);
       const idealWords = idealAnswer.toLowerCase().split(/\W+/);
@@ -292,6 +381,24 @@
       return (matchCount / uniqueIdeal.length) * 100;
     }
 
+    // Get Feedback Based on Rating
+    function getFeedback(rating, answer) {
+      switch (rating) {
+        case 5:
+          return "Excellent! You covered all key points.";
+        case 4:
+          return "Good! You mentioned most important concepts.";
+        case 3:
+          return "Fair. You touched on some relevant topics.";
+        case 2:
+          return "Needs improvement. Focus on core practices.";
+        case 1:
+          return "Limited. Consider reviewing best practices.";
+        default:
+          return "No answer provided.";
+      }
+    }
+
     // Show Final Result
     function showResult() {
       const avgScore = totalScore / interviewData.length;
@@ -301,10 +408,10 @@
 
       if (avgScore >= 30) {
         resultEl.className = "pass";
-        resultEl.innerHTML = "🎉 Congratulations! You passed the first round.<br><br>You will be contacted for the second round soon.";
+        resultEl.innerHTML = "🎉 <strong>Congratulations!</strong> You passed the first round.<br><br>You will be contacted for the second round soon.";
       } else {
         resultEl.className = "fail";
-        resultEl.innerHTML = "❌ Sorry, your skills do not match our requirements.<br><br>Thank you for your time.";
+        resultEl.innerHTML = "❌ <strong>Sorry</strong>, your skills do not match our requirements.<br><br>Thank you for your time.";
       }
       resultEl.style.display = "block";
     }
