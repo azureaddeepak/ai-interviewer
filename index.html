@@ -22,7 +22,6 @@
     }
     button:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
     }
     #status {
       margin: 20px;
@@ -41,20 +40,20 @@
   </style>
 </head>
 <body>
+
   <h1>🤖 AI Interviewer (Azure DevOps)</h1>
   <p id="question">Press "Start" to begin your interview.</p>
   <button id="startBtn">🎙️ Start Interview</button>
-  <button id="listenBtn" disabled>🎧 Listen to Answer</button>
   <div id="status"></div>
   <pre id="transcript"></pre>
 
   <script>
-    // Azure DevOps + AKS Interview Questions
+    // Interview Questions (Azure DevOps + AKS)
     const questions = [
       "Hello! I'm your AI interviewer. Can you explain what CI/CD is and how you've used it in Azure DevOps?",
       "Have you used Terraform or ARM templates? Please describe your experience.",
       "Tell me about a time you fixed a broken deployment pipeline.",
-      "How do you manage secrets in Azure DevOps pipelines? Have you used Key Vault integration?",
+      "How do you manage secrets in Azure DevOps pipelines? Have you used Azure Key Vault?",
       "Explain how you deploy applications to Azure Kubernetes Service (AKS) using Azure DevOps.",
       "What tools do you use for monitoring and logging in AKS? How do you set up alerts?",
       "Describe your experience with Helm charts in AKS deployments."
@@ -66,72 +65,83 @@
     const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
     const startBtn = document.getElementById("startBtn");
-    const listenBtn = document.getElementById("listenBtn");
     const questionEl = document.getElementById("question");
     const statusEl = document.getElementById("status");
     const transcriptEl = document.getElementById("transcript");
 
-    // Check if browser supports speech
+    // Check if SpeechRecognition is supported
     if (!recognition) {
-      statusEl.textContent = "Your browser doesn't support voice recognition. Try Chrome or Edge.";
+      statusEl.textContent = "⚠️ Your browser doesn't support voice recognition. Please use Google Chrome.";
       startBtn.disabled = true;
-      return;
     }
 
-    // Text-to-Speech
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 0.9;
-      synth.speak(utter);
+    // Add click event with delay to ensure DOM is ready
+    setTimeout(() => {
+      startBtn.onclick = function() {
+        console.log("Start button clicked!"); // Debug log
+        requestMicAndStart();
+      };
+    }, 500);
+
+    // Request microphone and start interview
+    function requestMicAndStart() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          statusEl.textContent = "🎤 Microphone access granted. Starting interview...";
+          startBtn.disabled = true;
+          nextQuestion();
+        })
+        .catch(err => {
+          statusEl.textContent = "❌ Microphone access denied. Please allow it in browser settings.";
+          console.error("Mic error:", err);
+        });
     }
 
-    // Start interview
-    startBtn.onclick = async () => {
-      try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        statusEl.textContent = "Microphone granted. Starting interview...";
-        startBtn.disabled = true;
-        nextQuestion();
-      } catch (err) {
-        statusEl.textContent = "Microphone access denied. Please allow it in browser settings.";
-      }
-    };
-
+    // Speak and ask next question
     function nextQuestion() {
       if (currentQ >= questions.length) {
-        questionEl.textContent = "Interview complete!";
+        questionEl.textContent = "✅ Interview complete!";
         statusEl.textContent = "You can review your answers above.";
         return;
       }
 
       const q = questions[currentQ];
       questionEl.textContent = q;
-      speak(q);
+      
+      // Speak the question
+      const utter = new SpeechSynthesisUtterance(q);
+      utter.rate = 0.9;
+      synth.speak(utter);
 
-      statusEl.textContent = "Listening in 3 seconds...";
+      statusEl.textContent = "🎙️ Listening in 3 seconds...";
       setTimeout(startListening, 3000);
     }
 
+    // Start listening to answer
     function startListening() {
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        transcriptEl.textContent += "\nA: " + transcript + "\n";
-        statusEl.textContent = "Answer recorded.";
-      };
+      try {
+        recognition.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          transcriptEl.textContent += `\nQ: ${questions[currentQ]}\nA: ${transcript}\n`;
+          statusEl.textContent = "✅ Answer recorded.";
+        };
 
-      recognition.onerror = (event) => {
-        statusEl.textContent = "Error: " + event.error;
-      };
+        recognition.onerror = function(event) {
+          statusEl.textContent = "Error: " + event.error;
+        };
 
-      recognition.start();
+        recognition.start();
 
-      // Stop after 5 seconds
-      setTimeout(() => {
-        recognition.stop();
-        statusEl.textContent = "Listening ended. Moving to next question...";
-        currentQ++;
-        setTimeout(nextQuestion, 1000);
-      }, 5000);
+        // Stop after 5 seconds
+        setTimeout(() => {
+          recognition.stop();
+          currentQ++;
+          setTimeout(nextQuestion, 1000);
+        }, 5000);
+
+      } catch (err) {
+        statusEl.textContent = "Failed to start listening: " + err.message;
+      }
     }
   </script>
 </body>
