@@ -10,7 +10,7 @@
       font-family: 'Roboto', Arial, sans-serif;
       text-align: center;
       padding: 30px;
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       color: #333;
       margin: 0;
       min-height: 100vh;
@@ -19,40 +19,43 @@
       max-width: 900px;
       margin: 0 auto;
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
       padding: 30px;
       overflow: hidden;
     }
     h1 {
-      color: #0078d4;
+      color: #005a9e;
       margin-bottom: 10px;
-      font-size: 28px;
+      font-size: 32px;
+      font-weight: 600;
     }
     p#question {
       font-size: 18px;
       line-height: 1.6;
       background: #f0f8ff;
-      padding: 15px;
-      border-radius: 10px;
+      padding: 18px;
+      border-radius: 12px;
       margin: 20px 0;
+      border: 1px solid #d0ebff;
+      font-weight: 500;
     }
     button {
       font-size: 16px;
-      padding: 12px 30px;
+      padding: 14px 32px;
       margin: 15px 0;
       border: none;
-      border-radius: 50px;
+      border-radius: 60px;
       background: #0078d4;
       color: white;
       cursor: pointer;
       font-weight: 600;
-      box-shadow: 0 4px 10px rgba(0,120,212,0.3);
-      transition: all 0.3s;
+      box-shadow: 0 6px 15px rgba(0, 120, 212, 0.4);
+      transition: all 0.3s ease;
     }
     button:hover {
       background: #005a9e;
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
     button:disabled {
       opacity: 0.6;
@@ -62,40 +65,46 @@
     #status, #timer {
       margin: 15px 0;
       font-style: italic;
-      color: #666;
+      color: #555;
       font-size: 16px;
     }
     #timer {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: bold;
-      color: #d90000;
+      color: #e74c3c;
       display: none;
+      background: #fdf2f2;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 2px solid #e74c3c;
     }
     #result {
       font-size: 20px;
       font-weight: bold;
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px auto;
+      padding: 25px;
+      border-radius: 14px;
+      margin: 25px auto;
       max-width: 800px;
       display: none;
+      line-height: 1.6;
+      text-align: center;
     }
     .pass {
       background: #d4edda;
       color: #155724;
-      border: 1px solid #c3e6cb;
+      border: 2px solid #c3e6cb;
     }
     .fail {
       background: #f8d7da;
       color: #721c24;
-      border: 1px solid #f5c6cb;
+      border: 2px solid #f5c6cb;
     }
     #transcript {
       white-space: pre-wrap;
       background: #f9f9f9;
       padding: 20px;
-      border-radius: 10px;
-      max-height: 300px;
+      border-radius: 12px;
+      max-height: 350px;
       overflow-y: auto;
       text-align: left;
       border: 1px solid #ddd;
@@ -104,41 +113,62 @@
     }
     .ai-text {
       color: #0078d4;
-      font-weight: bold;
-      margin: 8px 0;
+      font-weight: 600;
+      margin: 10px 0;
       display: block;
     }
     .user-text {
       color: #28a745;
-      font-weight: bold;
-      margin: 8px 0;
+      font-weight: 600;
+      margin: 10px 0;
       display: block;
     }
     .timestamp {
-      color: #666;
+      color: #6c757d;
       font-size: 12px;
+      margin-bottom: 4px;
     }
     .rating {
       color: #FFD700;
-      font-size: 24px;
-      margin: 10px 0;
+      font-size: 22px;
+      margin: 12px 0;
+      font-weight: bold;
     }
     .feedback {
-      color: #666;
+      color: #555;
       font-size: 14px;
       margin: 5px 0;
+      font-style: italic;
+    }
+    hr {
+      margin: 20px 0;
+      border: 1px dashed #dee2e6;
     }
     footer {
       margin-top: 30px;
-      color: #888;
+      color: #adb5bd;
       font-size: 14px;
+    }
+    .header-logo {
+      width: 60px;
+      height: 60px;
+      background: #0078d4;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 24px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>🎙️ AI Interviewer (Azure DevOps + AKS)</h1>
+    <div class="header-logo">🤖</div>
+    <h1>AI Interviewer (Azure DevOps + AKS)</h1>
     <p id="question">Press "Start Interview" to begin.</p>
 
     <button id="startBtn">🟢 Start Interview</button>
@@ -147,8 +177,8 @@
     <div id="timer">⏱️ Time Remaining: <span id="time">30</span> seconds</div>
     <div id="result"></div>
 
-    <h3>Interview Transcript</h3>
-    <pre id="transcript"></pre>
+    <h3 style="color:#005a9e; margin-top:30px;">Interview Transcript</h3>
+    <div id="transcript"></div>
 
     <footer>
       © 2025 AI Screening Assistant | Azure DevOps & AKS Role
@@ -170,9 +200,9 @@
     let currentQ = 0;
     let totalScore = 0;
     let timerInterval = null;
+
     const synth = window.speechSynthesis;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
     const startBtn = document.getElementById("startBtn");
     const questionEl = document.getElementById("question");
@@ -183,7 +213,7 @@
     const transcriptEl = document.getElementById("transcript");
 
     // Check browser support
-    if (!recognition) {
+    if (!SpeechRecognition) {
       statusEl.textContent = "⚠️ Browser doesn't support voice recognition. Please use Google Chrome.";
       startBtn.disabled = true;
     }
@@ -223,83 +253,67 @@
       timerEl.style.display = "block";
       timeEl.textContent = "30";
 
-      // Start 30-second timer and listening
-      startListening(30);
-    }
+      // Create new recognition instance
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
-    // Start Listening
-    function startListening(duration) {
-      let timeLeft = duration;
+      let finalTranscript = '';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        finalTranscript += transcript + ' ';
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech error:", event.error);
+      };
+
+      recognition.start();
+
+      // Start 30-second timer
+      let timeLeft = 30;
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
         timeLeft--;
         timeEl.textContent = timeLeft;
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
+          if (recognition.state !== "inactive") recognition.stop();
         }
       }, 1000);
 
-      // Request microphone
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          let finalTranscript = '';
+      // Stop after 30 seconds
+      setTimeout(() => {
+        if (recognition.state !== "inactive") recognition.stop();
 
-          // Configure recognition
-          recognition.continuous = false;
-          recognition.interimResults = false;
+        timerEl.style.display = "none";
+        statusEl.textContent = "✅ Answer recorded. Moving to next question...";
 
-          recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            finalTranscript += transcript + ' ';
-          };
+        // Save and show answer
+        const displayAnswer = finalTranscript.trim() || "No answer recorded.";
+        transcriptEl.innerHTML += `<div class="timestamp">${new Date().toLocaleTimeString()}</div><div class="user-text">You: ${displayAnswer}</div>\n`;
 
-          recognition.onerror = (event) => {
-            console.error("Speech error:", event.error);
-          };
+        // Score and show rating
+        const score = calculateScore(finalTranscript);
+        const rating = Math.round(score / 20); // 1–5
+        const feedback = getFeedback(rating);
 
-          recognition.start();
+        transcriptEl.innerHTML += `
+          <div class="rating">Rating: ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
+          <div class="feedback">💬 ${feedback}</div>
+          <hr>
+        `;
 
-          // Stop after 30 seconds
-          setTimeout(() => {
-            if (recognition.state !== "inactive") recognition.stop();
-            stream.getTracks().forEach(track => track.stop());
+        totalScore += score;
 
-            // Save final answer
-            timerEl.style.display = "none";
-            statusEl.textContent = "✅ Answer recorded. Moving to next question...";
-
-            // Show answer in transcript
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString();
-            const displayAnswer = finalTranscript.trim() || "No answer recorded.";
-            transcriptEl.innerHTML += `<div class="timestamp">${timeStr}</div><div class="user-text">You: ${displayAnswer}</div>\n`;
-
-            // Score answer and show rating
-            const score = calculateScore(finalTranscript);
-            const rating = Math.round(score / 20); // Convert to 1–5 scale
-            const feedback = getFeedback(rating);
-
-            transcriptEl.innerHTML += `
-              <div class="rating">⭐${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
-              <div class="feedback">${feedback}</div>
-              <hr style="margin:10px 0;border:1px dashed #ccc;">
-            `;
-
-            // Add to total score
-            totalScore += score;
-
-            // Next question
-            currentQ++;
-            setTimeout(nextQuestion, 1000);
-          }, duration * 1000);
-
-        })
-        .catch(err => {
-          statusEl.textContent = "Mic error: " + err.message;
-        });
+        // Next question
+        currentQ++;
+        setTimeout(nextQuestion, 1000);
+      }, 30000);
     }
 
-    // Calculate Score Based on Keywords (Simple)
+    // Calculate Score Based on Keywords
     function calculateScore(answer) {
       const keywords = [
         "CI/CD", "pipeline", "build", "deploy", "AKS", "Kubernetes", "Helm", "kubectl", "image", "ACR",
@@ -310,25 +324,18 @@
       keywords.forEach(word => {
         if (words.includes(word)) matchCount++;
       });
-
       return (matchCount / keywords.length) * 100;
     }
 
     // Get Feedback Based on Rating
     function getFeedback(rating) {
       switch (rating) {
-        case 5:
-          return "Excellent! You covered all key points.";
-        case 4:
-          return "Good! You mentioned most important concepts.";
-        case 3:
-          return "Fair. You touched on some relevant topics.";
-        case 2:
-          return "Needs improvement. Focus on core practices.";
-        case 1:
-          return "Limited. Consider reviewing best practices.";
-        default:
-          return "No answer provided.";
+        case 5: return "Excellent! You covered all key points.";
+        case 4: return "Good! You mentioned most important concepts.";
+        case 3: return "Fair. You touched on some relevant topics.";
+        case 2: return "Needs improvement. Focus on core practices.";
+        case 1: return "Limited. Consider reviewing best practices.";
+        default: return "No answer provided.";
       }
     }
 
@@ -341,10 +348,10 @@
 
       if (avgScore >= 30) {
         resultEl.className = "pass";
-        resultEl.innerHTML = "🎉 Congratulations! You passed the first round.<br><br>You will be contacted for the second round soon.";
+        resultEl.innerHTML = "🎉 <strong>Congratulations!</strong> You passed the first round.<br><br>You will be contacted for the second round soon.";
       } else {
         resultEl.className = "fail";
-        resultEl.innerHTML = "❌ Sorry, your skills do not match our requirements.<br><br>Thank you for your time.";
+        resultEl.innerHTML = "❌ <strong>Sorry</strong>, your skills do not match our requirements.<br><br>Thank you for your time.";
       }
       resultEl.style.display = "block";
     }
