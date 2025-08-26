@@ -4,11 +4,40 @@
   <meta charset="UTF-8" />
   <title>AI Interviewer (Azure DevOps)</title>
   <style>
-    body { font-family: Arial; text-align: center; padding: 50px; background-color: #f7f9fc; }
-    button { font-size: 16px; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #status { margin: 20px; font-style: italic; color: #666; }
-    pre { white-space: pre-wrap; background: #fff; padding: 15px; border-radius: 5px; max-width: 800px; margin: 20px auto; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f7f9fc;
+    }
+    button {
+      font-size: 16px;
+      padding: 12px 24px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #0078d4;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #status {
+      margin: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 800px;
+      margin: 20px auto;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
@@ -20,6 +49,7 @@
   <pre id="transcript"></pre>
 
   <script>
+    // Azure DevOps + AKS Interview Questions
     const questions = [
       "Hello! I'm your AI interviewer. Can you explain what CI/CD is and how you've used it in Azure DevOps?",
       "Have you used Terraform or ARM templates? Please describe your experience.",
@@ -41,7 +71,7 @@
     const statusEl = document.getElementById("status");
     const transcriptEl = document.getElementById("transcript");
 
-    // Check for speech support
+    // Check if browser supports speech
     if (!recognition) {
       statusEl.textContent = "Your browser doesn't support voice recognition. Try Chrome or Edge.";
       startBtn.disabled = true;
@@ -55,26 +85,20 @@
       synth.speak(utter);
     }
 
-    // Start interview with mic permission
+    // Start interview
     startBtn.onclick = async () => {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        statusEl.textContent = "Microphone not supported.";
-        return;
-      }
-
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         statusEl.textContent = "Microphone granted. Starting interview...";
         startBtn.disabled = true;
         nextQuestion();
       } catch (err) {
-        statusEl.textContent = "Microphone access denied. Please allow it.";
+        statusEl.textContent = "Microphone access denied. Please allow it in browser settings.";
       }
     };
 
-    // Move to next question
     function nextQuestion() {
-      if (currentQ >= questions.length - 1) {
+      if (currentQ >= questions.length) {
         questionEl.textContent = "Interview complete!";
         statusEl.textContent = "You can review your answers above.";
         return;
@@ -88,7 +112,6 @@
       setTimeout(startListening, 3000);
     }
 
-    // Start listening
     function startListening() {
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -107,7 +130,7 @@
         recognition.stop();
         statusEl.textContent = "Listening ended. Moving to next question...";
         currentQ++;
-        setTimeout(nextQuestion, 1000); // Wait 1 second before next
+        setTimeout(nextQuestion, 1000);
       }, 5000);
     }
   </script>
