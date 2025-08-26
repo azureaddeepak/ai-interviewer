@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Interviewer (Azure DevOps)</title>
+  <title>AI Interviewer (Azure DevOps + AKS)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,19 +24,16 @@
     .section { margin: 30px; }
     audio { margin: 10px; }
     #status { margin: 20px; font-style: italic; color: #666; }
+    #recording-timer { font-weight: bold; color: red; }
   </style>
 </head>
 <body>
 
-  <h1>🎙️ AI Interviewer (Azure DevOps + AKS)</h1>
-  <p id="question">Press "Start" to begin.</p>
-
+  <h1>🤖 AI Interviewer (Azure DevOps + AKS)</h1>
+  <p id="question">Press "Start Interview" to begin.</p>
   <div class="section">
     <button id="startBtn">🟢 Start Interview</button>
-    <button id="recordBtn" disabled>🔴 Record Answer (30 sec)</button>
-    <button id="nextBtn" disabled>➡️ Next Question</button>
   </div>
-
   <div id="status">Ready when you are.</div>
   <div id="recordings"></div>
 
@@ -54,8 +51,6 @@
     let currentQ = 0;
     const synth = window.speechSynthesis;
     const startBtn = document.getElementById("startBtn");
-    const recordBtn = document.getElementById("recordBtn");
-    const nextBtn = document.getElementById("nextBtn");
     const questionEl = document.getElementById("question");
     const statusEl = document.getElementById("status");
     const recordingsEl = document.getElementById("recordings");
@@ -70,84 +65,83 @@
     // Start Interview
     startBtn.onclick = () => {
       startBtn.disabled = true;
-      recordBtn.disabled = false;
-      nextBtn.disabled = true;
-      nextQuestion();
+      statusEl.textContent = "🎙️ Starting interview...";
+      setTimeout(() => {
+        nextQuestion();
+      }, 1000);
     };
 
-    // Move to next question
+    // Move to next question (auto)
     function nextQuestion() {
       if (currentQ >= questions.length) {
         questionEl.textContent = "✅ Interview complete! Thank you.";
-        statusEl.textContent = "You can review your recordings above.";
-        recordBtn.disabled = true;
-        nextBtn.disabled = true;
+        statusEl.textContent = "All questions completed.";
         return;
       }
 
       const q = questions[currentQ];
       questionEl.textContent = `Question ${currentQ + 1}: ${q}`;
       speak(q);
-      statusEl.textContent = "Press 'Record Answer' when ready.";
+      statusEl.textContent = "⏱️ You have 40 seconds to answer.";
+
+      // Start recording after 3 seconds
+      setTimeout(startRecording, 3000);
     }
 
-    // Voice Recording Setup
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioURL;
+    // Start Recording (Auto)
+    function startRecording() {
+      const timerDisplay = document.createElement('div');
+      timerDisplay.id = 'recording-timer';
+      timerDisplay.innerHTML = '<strong>⏱️ 40</strong>';
+      statusEl.appendChild(timerDisplay);
 
-    recordBtn.onclick = async () => {
-      recordBtn.disabled = true;
-      statusEl.textContent = "🔴 Recording... (30 seconds)";
+      let seconds = 40;
+      const countdown = setInterval(() => {
+        seconds--;
+        timerDisplay.innerHTML = `<strong>⏱️ ${seconds}</strong>`;
+        if (seconds <= 0) {
+          clearInterval(countdown);
+          timerDisplay.remove();
+          statusEl.textContent = "✅ Answer recorded. Moving to next question...";
+          currentQ++;
+          setTimeout(nextQuestion, 1000);
+        }
+      }, 1000);
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
+      // Record audio
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          const mediaRecorder = new MediaRecorder(stream);
+          const audioChunks = [];
 
-        mediaRecorder.ondataavailable = event => {
-          audioChunks.push(event.data);
-        };
+          mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+          };
 
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          audioURL = URL.createObjectURL(audioBlob);
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const audioURL = URL.createObjectURL(audioBlob);
 
-          const audio = document.createElement('audio');
-          audio.src = audioURL;
-          audio.controls = true;
+            const audio = document.createElement('audio');
+            audio.src = audioURL;
+            audio.controls = true;
 
-          const p = document.createElement('p');
-          p.innerHTML = `<strong>Q${currentQ + 1}:</strong> ${questions[currentQ]}`;
-          recordingsEl.appendChild(p);
-          recordingsEl.appendChild(audio);
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>Q${currentQ + 1}:</strong> ${questions[currentQ]}`;
+            recordingsEl.appendChild(p);
+            recordingsEl.appendChild(audio);
+          };
 
-          statusEl.textContent = "✅ Recording saved. Press 'Next Question' to continue.";
-          nextBtn.disabled = false;
-        };
-
-        mediaRecorder.start();
-        statusEl.textContent = "🔴 Recording... (30 seconds)";
-        
-        // Auto-stop after 30 seconds
-        setTimeout(() => {
-          if (mediaRecorder.state !== "inactive") {
+          mediaRecorder.start();
+          setTimeout(() => {
             mediaRecorder.stop();
             stream.getTracks().forEach(track => track.stop());
-          }
-        }, 30000);
-
-      } catch (err) {
-        statusEl.textContent = "Error: " + err.message;
-      }
-    };
-
-    nextBtn.onclick = () => {
-      currentQ++;
-      recordBtn.disabled = false;
-      nextBtn.disabled = true;
-      nextQuestion();
-    };
+          }, 40000); // Stop after 40 seconds
+        })
+        .catch(err => {
+          statusEl.textContent = "Error: " + err.message;
+        });
+    }
   </script>
 </body>
 </html>
