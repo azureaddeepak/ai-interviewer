@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Interviewer (Azure DevOps + AKS)</title>
+  <title>AI DevOps Interviewer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px;
+      padding: 30px;
       background-color: #f7f9fc;
     }
     button {
@@ -21,39 +21,94 @@
       cursor: pointer;
     }
     button:disabled { opacity: 0.5; }
-    .section { margin: 30px; }
-    audio { margin: 10px; }
-    #status { margin: 20px; font-style: italic; color: #666; }
-    #recording-timer { font-weight: bold; color: red; }
+    #status, #result {
+      margin: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 800px;
+      margin: 20px auto;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    .ai-text { color: #0078d4; font-weight: bold; }
+    .user-text { color: #28a745; font-weight: bold; }
+    #result {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+    }
+    .pass { background: #d4edda; color: #155724; }
+    .fail { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
 
   <h1>🤖 AI Interviewer (Azure DevOps + AKS)</h1>
   <p id="question">Press "Start Interview" to begin.</p>
-  <div class="section">
-    <button id="startBtn">🟢 Start Interview</button>
-  </div>
+  <button id="startBtn">🟢 Start Interview</button>
+
   <div id="status">Ready when you are.</div>
-  <div id="recordings"></div>
+  <div id="result"></div>
+  <pre id="transcript"></pre>
 
   <script>
-    const questions = [
-      "Welcome! Please tell me about your experience with Azure DevOps and CI/CD pipelines.",
-      "Have you used Terraform or ARM templates? Describe your experience.",
-      "Tell me about a time you fixed a broken deployment pipeline.",
-      "How do you manage secrets in Azure DevOps? Have you used Key Vault?",
-      "Explain how you deploy applications to Azure Kubernetes Service (AKS).",
-      "What tools do you use for monitoring and logging in AKS?",
-      "Describe your experience with Helm charts in AKS deployments."
+    // === INTERVIEW QUESTIONS & IDEAL ANSWERS ===
+    const interviewData = [
+      {
+        question: "What is the role of Azure DevOps in managing AKS clusters?",
+        ideal: "Azure DevOps provides CI/CD pipelines that can be integrated with AKS to automate the build, test, and deployment of containerized applications. It helps in building container images using Azure Pipelines, storing images in Azure Container Registry, deploying applications to AKS using Helm or Kubernetes manifests, and managing Infrastructure as Code using ARM templates, Bicep, or Terraform."
+      },
+      {
+        question: "How do you deploy an application to AKS using Azure DevOps pipelines?",
+        ideal: "First, build pipeline creates Docker image and pushes to ACR. Then release pipeline uses kubectl or Helm to deploy to AKS. Use service connection to authenticate with AKS and ACR. Use stages for Dev, QA, Prod with approvals."
+      },
+      {
+        question: "What are some best practices for securing AKS in CI/CD pipelines?",
+        ideal: "Use Managed Identities instead of secrets. Store secrets in Azure Key Vault. Enable RBAC and Azure AD integration. Scan container images with Microsoft Defender for Cloud or Trivy. Restrict access with Network Policies."
+      },
+      {
+        question: "How do you handle secrets when deploying to AKS from Azure DevOps?",
+        ideal: "Store secrets in Azure Key Vault. Use Azure DevOps Key Vault task to fetch secrets. In Kubernetes, use Secrets or CSI driver for Key Vault. Never hardcode secrets in manifests."
+      },
+      {
+        question: "What is the difference between using kubectl and Helm in Azure DevOps pipelines for AKS deployment?",
+        ideal: "kubectl applies Kubernetes YAML manifests directly. Good for simple deployments. Helm is a package manager with templating, versioning, and rollbacks. Better for complex apps with dependencies."
+      },
+      {
+        question: "How do you set up monitoring for AKS in an Azure DevOps environment?",
+        ideal: "Enable Azure Monitor for Containers. Use Log Analytics workspace. Integrate with Azure DevOps dashboards. Add smoke tests in pipeline. Optionally use Prometheus and Grafana."
+      },
+      {
+        question: "How do you implement blue-green or canary deployments in AKS using Azure DevOps?",
+        ideal: "Blue-Green: Deploy new version and switch traffic via Ingress. Canary: Gradually roll out using replicas or traffic weights. Use Helm or kubectl rollout. Tools like Flagger or Argo Rollouts can automate it."
+      }
     ];
 
     let currentQ = 0;
+    let totalScore = 0;
     const synth = window.speechSynthesis;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
     const startBtn = document.getElementById("startBtn");
     const questionEl = document.getElementById("question");
     const statusEl = document.getElementById("status");
-    const recordingsEl = document.getElementById("recordings");
+    const resultEl = document.getElementById("result");
+    const transcriptEl = document.getElementById("transcript");
+
+    // Check browser support
+    if (!recognition) {
+      statusEl.textContent = "⚠️ Browser doesn't support voice recognition. Use Chrome.";
+      startBtn.disabled = true;
+    }
 
     // Text-to-Speech
     function speak(text) {
@@ -66,81 +121,84 @@
     startBtn.onclick = () => {
       startBtn.disabled = true;
       statusEl.textContent = "🎙️ Starting interview...";
-      setTimeout(() => {
-        nextQuestion();
-      }, 1000);
+      nextQuestion();
     };
 
-    // Move to next question (auto)
+    // Move to next question
     function nextQuestion() {
-      if (currentQ >= questions.length) {
-        questionEl.textContent = "✅ Interview complete! Thank you.";
-        statusEl.textContent = "All questions completed.";
+      if (currentQ >= interviewData.length) {
+        showResult();
         return;
       }
 
-      const q = questions[currentQ];
-      questionEl.textContent = `Question ${currentQ + 1}: ${q}`;
-      speak(q);
-      statusEl.textContent = "⏱️ You have 40 seconds to answer.";
+      const data = interviewData[currentQ];
+      questionEl.textContent = data.question;
+      speak(data.question);
+      statusEl.textContent = "🎙️ You have 40 seconds to answer...";
 
-      // Start recording after 3 seconds
-      setTimeout(startRecording, 3000);
+      transcriptEl.innerHTML += `<p class="ai-text">AI: ${data.question}</p>`;
+
+      // Start listening after 3 sec
+      setTimeout(startListening, 3000);
     }
 
-    // Start Recording (Auto)
-    function startRecording() {
-      const timerDisplay = document.createElement('div');
-      timerDisplay.id = 'recording-timer';
-      timerDisplay.innerHTML = '<strong>⏱️ 40</strong>';
-      statusEl.appendChild(timerDisplay);
+    // Start Listening
+    function startListening() {
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        transcriptEl.innerHTML += `<p class="user-text">You: ${transcript}</p>`;
+        statusEl.textContent = "✅ Answer recorded.";
 
-      let seconds = 40;
-      const countdown = setInterval(() => {
-        seconds--;
-        timerDisplay.innerHTML = `<strong>⏱️ ${seconds}</strong>`;
-        if (seconds <= 0) {
-          clearInterval(countdown);
-          timerDisplay.remove();
-          statusEl.textContent = "✅ Answer recorded. Moving to next question...";
-          currentQ++;
-          setTimeout(nextQuestion, 1000);
+        // Score answer
+        const score = compareAnswers(transcript, interviewData[currentQ].ideal);
+        totalScore += score;
+      };
+
+      recognition.onerror = (event) => {
+        statusEl.textContent = "Error: " + event.error;
+      };
+
+      recognition.start();
+
+      // Stop after 40 seconds
+      setTimeout(() => {
+        recognition.stop();
+        currentQ++;
+        setTimeout(nextQuestion, 1000);
+      }, 40000);
+    }
+
+    // Simple Text Similarity (30% keyword match)
+    function compareAnswers(userAnswer, idealAnswer) {
+      const userWords = userAnswer.toLowerCase().split(/\W+/);
+      const idealWords = idealAnswer.toLowerCase().split(/\W+/);
+      const uniqueIdeal = [...new Set(idealWords)];
+      
+      let matchCount = 0;
+      uniqueIdeal.forEach(word => {
+        if (userWords.includes(word) && word.length > 3) {
+          matchCount++;
         }
-      }, 1000);
+      });
 
-      // Record audio
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          const mediaRecorder = new MediaRecorder(stream);
-          const audioChunks = [];
+      const matchPercent = (matchCount / uniqueIdeal.length) * 100;
+      return matchPercent;
+    }
 
-          mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-          };
+    // Show Final Result
+    function showResult() {
+      const avgScore = totalScore / interviewData.length;
+      questionEl.textContent = "Interview Complete!";
+      statusEl.textContent = "";
 
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const audioURL = URL.createObjectURL(audioBlob);
-
-            const audio = document.createElement('audio');
-            audio.src = audioURL;
-            audio.controls = true;
-
-            const p = document.createElement('p');
-            p.innerHTML = `<strong>Q${currentQ + 1}:</strong> ${questions[currentQ]}`;
-            recordingsEl.appendChild(p);
-            recordingsEl.appendChild(audio);
-          };
-
-          mediaRecorder.start();
-          setTimeout(() => {
-            mediaRecorder.stop();
-            stream.getTracks().forEach(track => track.stop());
-          }, 40000); // Stop after 40 seconds
-        })
-        .catch(err => {
-          statusEl.textContent = "Error: " + err.message;
-        });
+      if (avgScore >= 30) {
+        resultEl.className = "pass";
+        resultEl.innerHTML = "🎉 Congratulations! You passed the first round.<br>You will be contacted for the second round soon.";
+      } else {
+        resultEl.className = "fail";
+        resultEl.innerHTML = "❌ Sorry, your skills do not match our requirements.<br>Thank you for your time.";
+      }
+      resultEl.style.display = "block";
     }
   </script>
 </body>
