@@ -30,6 +30,19 @@
       font-size: 32px;
       font-weight: 600;
     }
+    .welcome-box {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 14px;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 16px;
+      line-height: 1.6;
+      border: 1px solid #bbdefb;
+    }
+    .welcome-box strong {
+      color: #0d47a1;
+    }
     p#question {
       font-size: 18px;
       line-height: 1.6;
@@ -169,6 +182,19 @@
   <div class="container">
     <div class="header-logo">🤖</div>
     <h1>AI Interviewer (Azure DevOps + AKS)</h1>
+
+    <!-- Welcome Message -->
+    <div class="welcome-box">
+      <p><strong>📌 Interview Information:</strong></p>
+      <ul style="text-align: left; margin: 10px 0;">
+        <li>This interview contains <strong>7 questions</strong> on <strong>Azure DevOps & AKS clusters</strong>.</li>
+        <li>After each question, you will have <strong>30 seconds</strong> to answer.</li>
+        <li>Each answer will be rated from <strong>1 to 5 stars</strong> with feedback.</li>
+        <li>At the end, you'll receive a final result: <strong>Pass or Fail</strong>.</li>
+      </ul>
+      <p style="font-weight: bold; color: #0d47a1;">🎯 All the best!</p>
+    </div>
+
     <p id="question">Press "Start Interview" to begin.</p>
 
     <button id="startBtn">🟢 Start Interview</button>
@@ -228,6 +254,7 @@
     // Start Interview
     startBtn.onclick = () => {
       startBtn.disabled = true;
+      document.querySelector(".welcome-box").style.display = "none"; // Hide welcome
       statusEl.textContent = "🎙️ Interview started...";
       timerEl.style.display = "block";
       nextQuestion();
